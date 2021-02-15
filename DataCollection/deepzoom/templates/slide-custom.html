@@ -1,0 +1,389 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>{{ slide_filename }}</title>
+
+<style type="text/css">
+html {
+    overflow: hidden;
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+div#view {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    color: white;
+}
+</style>
+
+<div id="view"></div>
+
+<button style="position: absolute; bottom: 20; right: 40;" >Send Points</button>
+
+<script type="text/javascript" src="{{ url_for('static', filename='jquery.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='openseadragon.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='openseadragon-scalebar.js') }}"></script>
+
+<script type="text/javascript" src="/static/openseadragon-fabricjs-overlay.js"></script>
+<script type="text/javascript" src="/static/fabric.js"></script>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var viewer = new OpenSeadragon({
+        id: "view",
+        tileSources: "{{ slide_url }}",
+        prefixUrl: "{{ url_for('static', filename='images/') }}",
+        showNavigator: true,
+        showRotationControl: true,
+        animationTime: 0.5,
+        blendTime: 0.1,
+        constrainDuringPan: true,
+        maxZoomPixelRatio: 2,
+        minZoomLevel: 1,
+        visibilityRatio: 1,
+        zoomPerScroll: 2,
+        timeout: 120000,
+    });
+
+    // Remove clickToZoom
+    viewer.gestureSettingsMouse.clickToZoom = false;
+
+    viewer.addHandler("open", function() {
+        // To improve load times, ignore the lowest-resolution Deep Zoom
+        // levels.  This is a hack: we can't configure the minLevel via
+        // OpenSeadragon configuration options when the viewer is created
+        // from DZI XML.
+        viewer.source.minLevel = 8;
+    });
+
+    var mpp = parseFloat("{{ slide_mpp }}");
+    viewer.scalebar({
+        pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
+        xOffset: 10,
+        yOffset: 10,
+        barThickness: 3,
+        color: '#555555',
+        fontColor: '#333333',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    });
+
+    const options = {
+                      scale: 100,
+                    };
+
+    let overlay = viewer.fabricjsOverlay(options);
+
+    // Draw and Line settings
+    let globalColor = "red";
+    overlay.fabricCanvas().freeDrawingBrush.color=globalColor;
+    overlay.fabricCanvas().freeDrawingBrush.width=1;
+
+    let POINTS = [];
+
+    viewer.setMouseNavEnabled(false);
+    viewer.outerTracker.setTracking(false);
+    overlay.fabricCanvas().isDrawingMode=D_state;
+
+    // Get coords
+    viewer.addHandler('canvas-click', function(event) {
+        // The canvas-click event gives us a position in web coordinates.
+        var webPoint = event.position;
+
+        // Convert that to viewport coordinates, the lingua franca of OpenSeadragon coordinates.
+        var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+
+        // Convert from viewport coordinates to image coordinates.
+        var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+
+        // Show the results.
+        console.log(imagePoint.toString());
+    });
+
+    // Mouse Interactions
+    overlay.fabricCanvas().on('mouse:down', function(o){
+        let pointer = overlay.fabricCanvas().getPointer(o.e);
+        //POINTS.push([x: pointer.x, y: pointer.y]);
+        let points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
+        line = new fabric.Line(points, {
+            strokeWidth: 1,
+            fill: globalColor,
+            stroke: globalColor,
+            originX: 'center',
+            originY: 'center'
+        });
+        overlay.fabricCanvas().add(line);
+
+    });
+
+
+
+
+});
+</script>
+
+
+<!--
+
+NEED TO MATCH OPENSEADRAGON VERSION - https://dermopath.uqcloud.net/images/BCC_1.svs
+
+
+$(document).ready(function() {
+    let viewer = new OpenSeadragon({
+        id: "view",
+        tileSources: "/images/BCC_1.svs.dzi",
+        prefixUrl: "/static/images/",
+        showNavigator: true,
+        showNavigationControl: true,
+        showRotationControl: false,
+        animationTime: 0.5,
+        blendTime: 0.1,
+        constrainDuringPan: true,
+        maxZoomPixelRatio: 2,
+        minZoomLevel: 1,
+        visibilityRatio: 1,
+        zoomPerClick: 1,
+        zoomPerScroll: 2,
+        timeout: 120000,
+        homeButton: "home",
+        navigatorId: "nav",
+        //panHorizontal: false,
+        //defaultZoomLevel: 1,
+        homeFillsViewer: true
+    });
+    // Remove clickToZoom
+    viewer.gestureSettingsMouse.clickToZoom = false;
+    //viewer.source.minLevel = 3;
+
+    var mpp = parseFloat("0");
+    viewer.scalebar({
+        pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
+        xOffset: 10,
+        yOffset: 10,
+        barThickness: 3,
+        color: '#555555',
+        fontColor: '#333333',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    });
+
+    const options = {
+                      scale: 100,
+                    };
+
+    let overlay = viewer.fabricjsOverlay(options);
+
+
+    // Draw and Line settings
+    let globalColor = "red";
+    overlay.fabricCanvas().freeDrawingBrush.color=globalColor;
+    overlay.fabricCanvas().freeDrawingBrush.width=1;
+    let lineMode = false;
+    let line, isDown;
+
+    // Toggle Drawing
+    document.getElementById("toggleDraw").onclick = function() {
+
+        if (overlay.fabricCanvas().isDrawingMode){
+            viewer.setMouseNavEnabled(true);
+            viewer.outerTracker.setTracking(true);
+            overlay.fabricCanvas().isDrawingMode=false;
+            let el = document.getElementById("toggleDraw");
+            el.style.backgroundColor = 'gray';
+
+        } else {
+            viewer.setMouseNavEnabled(false);
+            viewer.outerTracker.setTracking(false);
+            overlay.fabricCanvas().isDrawingMode=true;
+            let el = document.getElementById("toggleDraw");
+            el.style.backgroundColor = 'lightgray';
+
+        }
+    };
+
+    // Toggle Line
+    document.getElementById("toggleLine").onclick = function() {
+
+        if (lineMode === false) {
+            lineMode = true;
+            viewer.setMouseNavEnabled(false);
+            viewer.outerTracker.setTracking(false);
+            overlay.fabricCanvas().isDrawingMode=false;
+            let el = document.getElementById("toggleLine");
+            el.style.backgroundColor = 'lightgray';
+
+        } else {
+            lineMode = false;
+            viewer.setMouseNavEnabled(true);
+            viewer.outerTracker.setTracking(true);
+            overlay.fabricCanvas().isDrawingMode=false;
+            let el = document.getElementById("toggleLine");
+            el.style.backgroundColor = 'gray';
+
+        }
+
+
+    };
+
+    // Mouse Interactions
+    overlay.fabricCanvas().on('mouse:down', function(o){
+        if (lineMode){
+            isDown = true;
+            let pointer = overlay.fabricCanvas().getPointer(o.e);
+            let points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
+            line = new fabric.Line(points, {
+                strokeWidth: 1,
+                fill: globalColor,
+                stroke: globalColor,
+                originX: 'center',
+                originY: 'center'
+            });
+            overlay.fabricCanvas().add(line);
+        }
+
+    });
+
+
+    // Mouse up on poly draw/fill
+    overlay.fabricCanvas().on('mouse:up', function(){
+
+        // Drawing Mode
+        if (overlay.fabricCanvas().isDrawingMode){
+            // Get all objects on canvas
+            let objects = overlay.fabricCanvas().getObjects();
+            // Get the last drawn object
+            let obj = objects[objects.length-1];
+            // Update
+            obj.set ({
+                        fill : globalColor,
+                        opacity : 0.5,
+                        selectable : false,
+                        cursor : 'pointer',
+            });
+            overlay.fabricCanvas().renderAll();
+            }
+        // Line Mode
+        if (lineMode){
+            isDown = false;
+        }
+    });
+
+    overlay.fabricCanvas().on('mouse:move', function(o){
+        if (lineMode){
+            if (!isDown) return;
+            let pointer = overlay.fabricCanvas().getPointer(o.e);
+            line.set({ x2: pointer.x,
+                       y2: pointer.y,
+                       selectable : false,
+                       cursor : 'pointer',
+            });
+            overlay.fabricCanvas().renderAll();
+        }
+    });
+
+
+    // Undo Last stroke
+    document.getElementById("undoStroke").onclick = function() {
+        let objects = overlay.fabricCanvas().getObjects();
+        let pos = objects.length - 1;
+        overlay.fabricCanvas().remove(objects[pos]);
+        overlay.fabricCanvas().renderAll();
+        console.log(overlay.fabricCanvas().getObjects());
+    };
+
+    // Clear all
+    document.getElementById("clearCanvas").onclick = function() {
+        overlay.fabricCanvas().clear();
+    };
+
+    // Save Canvas
+    document.getElementById("saveCanvas").onclick = function() {
+        prepareCanvasForSaving();
+        let href = overlay.fabricCanvas().toDataURL({
+            format : "image/png",
+            quality : 1,
+            //left: 0,
+            //top: 0,
+            //width: viewer.source.dimensions.x,
+            //height: viewer.source.dimensions.y,
+        });
+        let win = window.open();
+        win.document.write('<iframe src="' + href + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:500px; right:500px; width:100%; height:100%;" allowfullscreen></iframe>');
+        revertCanvasAfterSaving();
+    }
+
+
+    function prepareCanvasForSaving(){
+        overlay.fabricCanvas().backgroundColor="black";
+        overlay.fabricCanvas().getObjects().forEach(obj => {
+            obj.set ({
+                opacity : 1,
+            });
+        });
+        overlay.fabricCanvas().renderAll();
+    }
+
+    function revertCanvasAfterSaving(){
+        overlay.fabricCanvas().backgroundColor=null;
+        overlay.fabricCanvas().getObjects().forEach(obj => {
+            obj.set ({
+                opacity : 0.5,
+            });
+        });
+        overlay.fabricCanvas().renderAll();
+    }
+
+     // ---------------------------- //
+
+    // ---------------------------- //
+
+    // viewer.addHandler("open", function(){
+    //
+    //     var tracker = new OpenSeadragon.MouseTracker({
+    //         element: viewer.container,
+    //         moveHandler: function(event) {
+    //             var webPoint = event.position;
+    //             var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+    //             var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+    //             var zoom = viewer.viewport.getZoom(true);
+    //             console.log("Web:",webPoint.toString(),
+    //                         "Viewport:" , viewportPoint.toString(),
+    //                         "Image:", imagePoint.toString(),
+    //                         "Zoom:", zoom.toString(),
+    //             );
+    //         }
+    //     });
+    //
+    //     tracker.setTracking(true);
+    //
+    //
+    // });
+
+    // --------------------------- //
+
+    $(".colorOptions").click(function(event) {
+        let colorDiv = event.target.id;
+        let element = document.getElementById(colorDiv).parentElement;
+        element.style.backgroundColor = colorDiv;
+        globalColor = colorDiv;
+        overlay.fabricCanvas().freeDrawingBrush.color=globalColor;
+    });
+
+
+    // Correct navigator div
+    let nav = $("#nav");
+    let parent = nav.parent();
+    parent.parent().append(nav);
+    parent.remove();
+
+
+
+
+});
+
+
+
+-->
