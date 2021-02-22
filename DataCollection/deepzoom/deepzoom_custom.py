@@ -18,8 +18,10 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-from flask import Flask, abort, make_response, render_template, url_for
+from flask import Flask, abort, make_response, render_template, url_for, request
+from flask import send_file
 from io import BytesIO
+import base64
 import openslide
 from openslide import ImageSlide, open_slide
 from openslide.deepzoom import DeepZoomGenerator
@@ -74,6 +76,40 @@ def load_slide():
     except (KeyError, ValueError):
         app.slide_mpp = 0
 
+
+# ----- CUSTOM CALLS ---- #
+@app.route('/getTileFromPoint', methods=["POST"])
+def get_tile_from_point():
+    data = request.json
+
+    # Access slide
+    slide = app.slides["slide"]._osr
+
+    # parse data
+    x = int(data["x"])
+    y = int(data["y"])
+
+    # Access thumb
+    #tile = slide.get_thumbnail((100,100))
+
+    # Read slide
+    tile = slide.read_region(location=(x, y),
+                             level=0,
+                             size=(2048, 2048))
+
+    tile = tile.resize((256, 256))
+
+    tile.show()
+
+    buffer = PILBytesIO()
+    tile.save(buffer, "png")
+    img_string = "data:image/png;base64,"
+    img_string += base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return "hello world"
+
+
+# ----------------------- #
 
 @app.route('/')
 def index():

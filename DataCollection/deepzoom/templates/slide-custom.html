@@ -13,17 +13,45 @@ body {
 div#view {
     position: absolute;
     left: 0;
-    width: 100%;
+    width: 1000px;
     height: 100%;
     background-color: black;
     color: white;
 }
+
+#console {
+    float: right;
+    width: 600px;
+    border: 1px solid black;
+    margin: 40px;
+}
+
+#output {
+    border: 1px solid orange;
+}
+
 </style>
 
 <div id="view"></div>
 
-<button style="position: absolute; bottom: 20; right: 40;" >Send Points</button>
+<div id="console">
+    <!--    BUTTONS -->
+    <button id="toggleDraw">Toggle Click / Draw</button>
+    <button id="points">Get Points</button>
+    <button id="reset">Reset Points</button>
+    <button id="inter">Interpolate Points</button>
+    <button id="process">Process Points</button>
 
+    <br><br>
+    <img id="rot" id="patch" height="200px" width="200px" src="https://tpc.googlesyndication.com/simgad/16208831610838241335"><br>
+    <input type="range" min="-180" max="180" oninput="rotate(this.value)" style="width:400px">
+    <div id="output" style="height: 100%; overflow-y:scroll"></div>
+</div>
+
+
+
+
+<!-- OPEN SEA DRAGON-->
 <script type="text/javascript" src="{{ url_for('static', filename='jquery.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='openseadragon.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='openseadragon-scalebar.js') }}"></script>
@@ -31,100 +59,8 @@ div#view {
 <script type="text/javascript" src="/static/openseadragon-fabricjs-overlay.js"></script>
 <script type="text/javascript" src="/static/fabric.js"></script>
 
-
-<script type="text/javascript">
-$(document).ready(function() {
-    var viewer = new OpenSeadragon({
-        id: "view",
-        tileSources: "{{ slide_url }}",
-        prefixUrl: "{{ url_for('static', filename='images/') }}",
-        showNavigator: true,
-        showRotationControl: true,
-        animationTime: 0.5,
-        blendTime: 0.1,
-        constrainDuringPan: true,
-        maxZoomPixelRatio: 2,
-        minZoomLevel: 1,
-        visibilityRatio: 1,
-        zoomPerScroll: 2,
-        timeout: 120000,
-    });
-
-    // Remove clickToZoom
-    viewer.gestureSettingsMouse.clickToZoom = false;
-
-    viewer.addHandler("open", function() {
-        // To improve load times, ignore the lowest-resolution Deep Zoom
-        // levels.  This is a hack: we can't configure the minLevel via
-        // OpenSeadragon configuration options when the viewer is created
-        // from DZI XML.
-        viewer.source.minLevel = 8;
-    });
-
-    var mpp = parseFloat("{{ slide_mpp }}");
-    viewer.scalebar({
-        pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
-        xOffset: 10,
-        yOffset: 10,
-        barThickness: 3,
-        color: '#555555',
-        fontColor: '#333333',
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    });
-
-    const options = {
-                      scale: 100,
-                    };
-
-    let overlay = viewer.fabricjsOverlay(options);
-
-    // Draw and Line settings
-    let globalColor = "red";
-    overlay.fabricCanvas().freeDrawingBrush.color=globalColor;
-    overlay.fabricCanvas().freeDrawingBrush.width=1;
-
-    let POINTS = [];
-
-    viewer.setMouseNavEnabled(false);
-    viewer.outerTracker.setTracking(false);
-    overlay.fabricCanvas().isDrawingMode=D_state;
-
-    // Get coords
-    viewer.addHandler('canvas-click', function(event) {
-        // The canvas-click event gives us a position in web coordinates.
-        var webPoint = event.position;
-
-        // Convert that to viewport coordinates, the lingua franca of OpenSeadragon coordinates.
-        var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-
-        // Convert from viewport coordinates to image coordinates.
-        var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
-
-        // Show the results.
-        console.log(imagePoint.toString());
-    });
-
-    // Mouse Interactions
-    overlay.fabricCanvas().on('mouse:down', function(o){
-        let pointer = overlay.fabricCanvas().getPointer(o.e);
-        //POINTS.push([x: pointer.x, y: pointer.y]);
-        let points = [ pointer.x, pointer.y, pointer.x, pointer.y ];
-        line = new fabric.Line(points, {
-            strokeWidth: 1,
-            fill: globalColor,
-            stroke: globalColor,
-            originX: 'center',
-            originY: 'center'
-        });
-        overlay.fabricCanvas().add(line);
-
-    });
-
-
-
-
-});
-</script>
+<!-- OWN CODE-->
+<script type="text/javascript" src="{{ url_for('static', filename='interface.js') }}"></script>
 
 
 <!--
