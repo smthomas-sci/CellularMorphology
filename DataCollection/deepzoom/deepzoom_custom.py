@@ -93,20 +93,19 @@ def get_tile_from_point():
     #tile = slide.get_thumbnail((100,100))
 
     # Read slide
-    tile = slide.read_region(location=(x, y),
+    DIM = 1024*2*2
+    tile = slide.read_region(location=(x-(DIM//2), y-(DIM//2)),
                              level=0,
-                             size=(2048, 2048))
+                             size=(DIM, DIM))
 
     tile = tile.resize((256, 256))
-
-    tile.show()
 
     buffer = PILBytesIO()
     tile.save(buffer, "png")
     img_string = "data:image/png;base64,"
     img_string += base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    return "hello world"
+    return img_string
 
 
 # ----------------------- #

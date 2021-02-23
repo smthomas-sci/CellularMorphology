@@ -56,6 +56,7 @@ let b1 = document.getElementById("toggleDraw");
 let b2 = document.getElementById("points");
 let b3 = document.getElementById("reset");
 let b4 = document.getElementById("process");
+let b5 = document.getElementById("save");
 
 b1.onclick = function(){
     console.log("Click Status: " + !clickStatus);
@@ -83,22 +84,54 @@ b3.onclick = function(){
     overlay.fabricCanvas().clear();
 }
 
-let sendReq = function(){
+function sendReq(point) {
     http = new XMLHttpRequest();
     http.open("POST", "/getTileFromPoint", true);
     http.setRequestHeader('Content-type', 'application/json');
-    http.send(JSON.stringify(POINTS[0]));
-    return http
+    http.onload = function(){
+        if (http.status == 200) {
+            let img = document.getElementById("rot");
+            img.src = http.response;
+        } else {
+            console.log("failed to get image");
+        }
+    }
+    http.send(JSON.stringify(point));
 }
 
-b4.onclick = async function(){
+let currentPoint;
+b4.onclick = function(){
 
-    let http = sendReq()
-    let img = document.getElementById("rot");
-    img.src = http.response;
-    console.log(http);
+    // get point at front of array
+    currentPoint = POINTS.shift()
+
+    // Get image from server
+    sendReq(currentPoint);
+
+    // remove point from canvas
+    let objects = overlay.fabricCanvas().getObjects();
+    overlay.fabricCanvas().remove(objects[0]);
+    overlay.fabricCanvas().renderAll();
+}
+
+// SAVE IMAGE
+b5.onclick = function(){
+
+    // get current rotation
+    let angle = document.getElementById("angle").value;
+
+    // Send angle and point to server to save
+    // TODO
+
+    // Update
 
 }
+
+
+
+
+// VIEWR ----------
+
 
 // Get coords
 viewer.addHandler('canvas-click', function(event) {
