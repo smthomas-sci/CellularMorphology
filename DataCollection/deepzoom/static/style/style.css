@@ -1,0 +1,78 @@
+html {
+            overflow: hidden;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #view {
+            position: absolute;
+            /*display: inline-block; */
+            left: 0;
+            width: 1000px;
+            height: 100%;
+            background-color: black;
+            color: white;
+        }
+
+        #console {
+            float: right;
+            width: 600px;
+            margin-right: 150px;
+            margin-top: 40px;
+            margin-left: 40px;
+            margin-bottom: 40px;
+        }
+
+        #angle {
+            padding: 50px;
+            display: block;
+            width: 400px;
+            margin: auto;
+        }
+
+        #rot {
+            margin: auto;
+            display: block;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+        }
+
+        #crop {
+            position: fixed;
+            left: 1320px;
+            top: 160px;
+            width: 300px;
+            height: 300px;
+        }
+
+        #crop rect {
+            fill: none;
+            stroke: yellow;
+            stroke-width: 3px;
+            transform: translate(75px, 75px);
+            width: 150px;
+            height: 150px;
+        }
+
+        #buttons {
+            padding: 20px;
+            text-align: center;
+        }
+
+        button {
+            border-radius: 0;
+            background: lightgrey;
+            border: none;
+            padding: 10px;
+            opacity: 0.8;
+        }
+
+        button:hover    {
+            opacity: 1;
+            background: black;
+            color: yellow;
+            transition: all 0.1s linear;
+        }

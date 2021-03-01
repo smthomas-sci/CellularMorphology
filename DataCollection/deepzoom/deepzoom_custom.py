@@ -29,6 +29,12 @@ from optparse import OptionParser
 import re
 from unicodedata import normalize
 
+import numpy as np
+import skimage.io as io
+from skimage.transform import resize
+import os
+
+
 DEEPZOOM_SLIDE = None
 DEEPZOOM_FORMAT = 'jpeg'
 DEEPZOOM_TILE_SIZE = 254
@@ -40,6 +46,8 @@ SLIDE_NAME = 'slide'
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('DEEPZOOM_TILER_SETTINGS', silent=True)
+
+global_count = 0
 
 
 class PILBytesIO(BytesIO):
@@ -107,8 +115,59 @@ def get_tile_from_point():
 
     return img_string
 
-
 # ----------------------- #
+@app.route('/saveTileFromData', methods=["POST"])
+def save_tile_from_data():
+    # parse data
+    data = request.json
+    x = int(data["x"])
+    y = int(data["y"])
+    angle = int(data["angle"])
+
+    # Access slide
+    slide = app.slides["slide"]._osr
+
+    # Access thumb
+    # tile = slide.get_thumbnail((100,100))
+
+    # Read slide
+    DIM = 1024 * 2 * 2
+    tile = slide.read_region(location=(x - (DIM // 2), y - (DIM // 2)),
+                             level=0,
+                             size=(DIM, DIM))
+
+    # Rotate
+    tile = tile.rotate(-angle)
+
+
+    # Crop
+    WINDOW = 1362
+    tile = np.array(tile)
+
+    p = (DIM // 2) - (WINDOW // 2)
+    offset = 256  # seems right?
+    tile = tile[(p+offset):(p+offset)+WINDOW, p:p+WINDOW]
+
+    # Resize
+    tile = resize(tile, (1024, 1024))
+
+    # Save
+    global global_count
+    global_count += 1
+    fname = f"demo_image_{global_count}.jpg"
+
+    print("Slide Name:", slide._filename)
+
+    DIR = "./out/" + slide._filename.split("/")[-1].split(".")[0]
+    os.system("mkdir -p " + DIR)
+
+    fname = os.path.join(DIR, fname)
+
+    io.imsave(fname, (tile*255.).astype("uint8")[..., 0:3])
+    print("saved ...", fname)
+
+    return "success."
+
 
 @app.route('/')
 def index():

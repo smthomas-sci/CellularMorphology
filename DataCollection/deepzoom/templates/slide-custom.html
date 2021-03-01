@@ -1,40 +1,8 @@
 <!doctype html>
 <head>
-
     <meta charset="utf-8">
     <title>{{ slide_filename }}</title>
-<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">-->
-    <style type="text/css">
-        html {
-            overflow: hidden;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        div#view {
-            position: absolute;
-            left: 0;
-            width: 1000px;
-            height: 100%;
-            background-color: black;
-            color: white;
-        }
-
-        #console {
-            float: right;
-            width: 600px;
-            border: 1px solid black;
-            margin: 40px;
-        }
-
-        #output {
-            border: 1px solid orange;
-        }
-
-    </style>
-
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
 </head>
 
 
@@ -44,16 +12,18 @@
 
 <div id="console">
     <!--    BUTTONS -->
-    <button id="toggleDraw">Toggle Click / Draw</button>
-    <button id="points">Get Points</button>
-    <button id="reset">Reset Points</button>
-    <button id="process">Fetch Next Point</button>
-    <button id="save">Save Image</button>
-
+    <div id="buttons">
+        <button id="toggleDraw">Toggle Click / Draw</button>
+        <button id="reset">Reset Points</button>
+        <button id="process">Process Points</button>
+        <button id="save">Save Image</button>
+    </div>
     <br><br>
-    <img id="rot" id="patch" height="200px" width="200px" src="https://tpc.googlesyndication.com/simgad/16208831610838241335"><br>
-    <input id="angle" type="range" min="-180" max="180" oninput="rotate(this.value)" style="width:400px">
-    <div id="output" style="height: 100%; overflow-y:scroll"></div>
+    <img id="rot" id="patch" src="" style="background: black"><br>
+    <svg id="crop">
+        <rect/>
+    </svg>
+    <input id="angle" type="range" min="-360" max="360" oninput="rotate(this.value)">
 </div>
 
 

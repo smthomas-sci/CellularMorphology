@@ -1,14 +1,24 @@
+/*
+
+This is the interface for the dataset builder.
+
+Author: Simon Thomas
+Date: 01 Mar 2021
+
+*/
 
 let IMG_SRC;
+let ROT = document.getElementById("rot");
+let POINTS = [];
+const OPTIONS = { scale: 100 }; // seems to work
+const GLOBAL_COLOR = "yellow";
+let currentPoint;
 
-let rot = document.getElementById("rot");
 
-let rotate = function(degrees){
-    rot.style.transform = "rotate(" + degrees + "deg)";
-};
-
-let OUT = document.getElementById("output");
-
+/*
+    This instantiates the OpenSeadragon Canvas.
+    These settings can be tweaked to suit.
+*/
 let viewer = new OpenSeadragon({
     id: "view",
     tileSources: "/slide.dzi",
@@ -36,35 +46,32 @@ viewer.addHandler("open", function() {
     viewer.source.minLevel = 8;
 });
 
-const options = {
-                  scale: 100,
-                };
 
-let overlay = viewer.fabricjsOverlay(options);
+// Build the FabricJS overlay
+let overlay = viewer.fabricjsOverlay(OPTIONS);
 
 // Draw and Line settings
-let globalColor = "yellow";
-overlay.fabricCanvas().freeDrawingBrush.color=globalColor;
+overlay.fabricCanvas().freeDrawingBrush.color=GLOBAL_COLOR;
 overlay.fabricCanvas().freeDrawingBrush.width=1;
-
-let POINTS = [];
 
 let clickStatus = true;
 let drawStatus = false;
 
-let b1 = document.getElementById("toggleDraw");
-let b2 = document.getElementById("points");
-let b3 = document.getElementById("reset");
-let b4 = document.getElementById("process");
-let b5 = document.getElementById("save");
+// INTERACTION FUNCTIONS
 
-b1.onclick = function(){
-    console.log("Click Status: " + !clickStatus);
+let rotate = function(degrees){
+    ROT.style.transform = "rotate(" + degrees + "deg)";
+};
 
-    clickStatus = !clickStatus;
-}
 
-b1.onclick = function(){
+// Pointers to buttons
+let toggle_button = document.getElementById("toggleDraw");
+let reset_button = document.getElementById("reset");
+let process_button = document.getElementById("process");
+let save_button = document.getElementById("save");
+
+
+toggle_button.onclick = function(){
     // toggle
     drawStatus = !drawStatus;
     // Change to update view
@@ -75,11 +82,8 @@ b1.onclick = function(){
     viewer.outerTracker.setTracking(!drawStatus);
 }
 
-b2.onclick = function(){
-    console.log(POINTS);
-}
 
-b3.onclick = function(){
+reset_button.onclick = function(){
     POINTS = [];
     overlay.fabricCanvas().clear();
 }
@@ -89,18 +93,18 @@ function sendReq(point) {
     http.open("POST", "/getTileFromPoint", true);
     http.setRequestHeader('Content-type', 'application/json');
     http.onload = function(){
+        let img = document.getElementById("rot");
         if (http.status == 200) {
-            let img = document.getElementById("rot");
             img.src = http.response;
         } else {
             console.log("failed to get image");
+            img.src = "";
         }
     }
     http.send(JSON.stringify(point));
 }
 
-let currentPoint;
-b4.onclick = function(){
+process_button.onclick = function(){
 
     // get point at front of array
     currentPoint = POINTS.shift()
@@ -115,38 +119,47 @@ b4.onclick = function(){
 }
 
 // SAVE IMAGE
-b5.onclick = function(){
+function saveRequest(data){
+    http = new XMLHttpRequest();
+    http.open("POST", "/saveTileFromData", true);
+    http.setRequestHeader('Content-type', 'application/json');
+    http.onload = function(){
+        if (http.status == 200) {
+            // add more output if necessary
+            console.log("save successful.")
+        } else {
+            console.log("failed to save image");
+        }
+    }
+    http.send(JSON.stringify(data));
+
+    document.getElementById("angle").focus();
+}
+
+
+save_button.onclick = function(){
 
     // get current rotation
     let angle = document.getElementById("angle").value;
 
     // Send angle and point to server to save
-    // TODO
+    data = { "x" : currentPoint["x"],
+             "y" : currentPoint["y"],
+             "angle" : angle
+    }
+    saveRequest(data);
 
-    // Update
+    // Automatically fetch next point
+    process_button.click()
+
+    // Set focus on slider
+    document.getElementById("angle").focus();
 
 }
 
+overlay.fabricCanvas().on("mouse:down", function(event) {
 
-
-
-// VIEWR ----------
-
-
-// Get coords
-viewer.addHandler('canvas-click', function(event) {
-
-    let points = [ event.position.x, event.position.y, event.position.x, event.position.y ];
-    line = new fabric.Line(points, {
-        strokeWidth: 1,
-        fill: globalColor,
-        stroke: globalColor,
-        originX: 'center',
-        originY: 'center'
-    });
-    overlay.fabricCanvas().add(line);
-
-    let webPoint = new OpenSeadragon.Point(x = event.position.x, y = event.position.y);
+    let webPoint = new OpenSeadragon.Point(x = event.pointer.x, y = event.pointer.y);
 
     var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
 
@@ -154,10 +167,31 @@ viewer.addHandler('canvas-click', function(event) {
     var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
 
     // Show the results.
-    console.log(imagePoint.toString());
+    //console.log("Canvas: " + webPoint  + " Real: " + imagePoint.toString());
 
     // Save Points
     POINTS.push({x: imagePoint.x, y: imagePoint.y});
 
+})
+
+// Key Presses !
+document.addEventListener('keypress', event => {
+    if (event.code == "KeyT"){
+        toggle_button.click();
+    }
+
+    if (event.code === "Enter" | event.code === "NumpadEnter") {
+        save_button.click();
+    }
+
+    if (event.code === "KeyP") {
+        process_button.click();
+    }
+
+    if (event.code === "KeyR") {
+        reset_button.click();
+    }
 
 });
+
+
