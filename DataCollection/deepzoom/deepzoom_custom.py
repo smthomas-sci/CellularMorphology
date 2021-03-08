@@ -154,9 +154,9 @@ def save_tile_from_data():
     # Save
     global global_count
     global_count += 1
-    fname = f"demo_image_{global_count}.jpg"
 
-    print("Slide Name:", slide._filename)
+    slide_name = slide._filename.split("/")[-1].split(".")[0]
+    fname = f"{slide_name}_{global_count}.jpg"
 
     DIR = "./out/" + slide._filename.split("/")[-1].split(".")[0]
     os.system("mkdir -p " + DIR)

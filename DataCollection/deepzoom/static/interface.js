@@ -9,6 +9,8 @@ Date: 01 Mar 2021
 
 let IMG_SRC;
 let ROT = document.getElementById("rot");
+let DIST = document.getElementById("distance");
+let LIGHT = document.getElementById("indicator");
 let POINTS = [];
 const OPTIONS = { scale: 100 }; // seems to work
 const GLOBAL_COLOR = "yellow";
@@ -171,7 +173,6 @@ overlay.fabricCanvas().on("mouse:down", function(event) {
 
     // Save Points
     POINTS.push({x: imagePoint.x, y: imagePoint.y});
-
 })
 
 // Key Presses !
@@ -194,4 +195,46 @@ document.addEventListener('keypress', event => {
 
 });
 
+
+// MOUSE TRACKING
+overlay.fabricCanvas().on("mouse:move", function(event) {
+
+    let webPoint = new OpenSeadragon.Point(x = event.pointer.x, y = event.pointer.y);
+
+    var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+
+    // Convert from viewport coordinates to image coordinates.
+    var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+
+    // Show the results.
+    //console.log("Canvas: " + webPoint  + " Real: " + imagePoint.toString());
+
+    // Calculate distane from last point
+    if (POINTS.length > 0) {
+        let i = POINTS.length - 1;
+        let dist = Math.sqrt((POINTS[i].x - imagePoint.x)**2 + (POINTS[i].y - imagePoint.y)**2);
+        DIST.innerText = "Dist: " + dist;
+
+        LIGHT.style.top =  webPoint.y + "px";
+        LIGHT.style.left = webPoint.x + "px";
+
+        if (dist <= 350) {
+            LIGHT.style.background = "yellow";
+            overlay.fabricCanvas().style.cursor = "url('./stack/yellow_cursor.png')";
+
+        }
+
+        if (dist > 350 && dist < 400 ) {
+            LIGHT.style.background = "#30FF00";
+            overlay.style.cursor = "url('./stack/green_cursor.png')";
+        }
+        if (dist > 400) {
+            LIGHT.style.background = "red";
+            overlay.style.cursor = "url('./stack/red_cursor.png')";
+        }
+    }
+
+    // Save Points
+    //POINTS.push({x: imagePoint.x, y: imagePoint.y});
+})
 

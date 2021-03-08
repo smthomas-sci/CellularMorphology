@@ -76,3 +76,25 @@ html {
             color: yellow;
             transition: all 0.1s linear;
         }
+
+
+        #indicator {
+            display: inline-block;
+            height: 15px;
+            width: 15px;
+            opacity: 0.5;
+            border-radius: 50%;
+            background-color: lightgrey;
+            vertical-align: middle;
+
+            z-index: 100;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+        }
+
+        #distance {
+            display: inline-block;
+        }
+
+
