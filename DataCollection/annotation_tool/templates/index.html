@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Annotation Tool</title>
+
+        <link rel="icon" type="image/png" href="https://media.istockphoto.com/vectors/flat-icon-check-vector-id496603666?k=6&m=496603666&s=170667a&w=0&h=CdaZL0kvQieOEjq0Vt8gLzlZvVQDKtiqZEx32WDDEYs=">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <script src="{{ url_for('static', filename='scripts/logic.js') }}"></script>
+    </head>
+    <body>
+
+
+        <div id="cases" class="column">
+            <h3>Cases</h3>
+            <ul id="cases_list"></ul>
+        </div>
+
+        <div id="images" class="column">
+
+            <h4 id="tally"></h4>
+            <div>
+                <img id="image" src="data:," alt height="1024" width="1024">
+            </div>
+            <div id="image_array"></div>
+
+        </div>
+
+
+        <div id="annotations" class="column">
+
+            <div id="current_annotation">
+                <h3 style="display: inline;">Search</h3><button onclick="recognition.start()">🎤</button>
+                <br>
+                <textarea id="annotation_text" placeholder="type phrases or keywords to get suggestions"></textarea>
+                <ul id="suggestions"></ul>
+            </div>
+            <div>
+                <h3>Annotation</h3>
+                <textarea id="annotation"></textarea>
+                <button onclick="submit_annotation()">Submit</button>
+            </div>
+
+            <div>
+                <h3>Annotations</h3>
+                <div id="all_annotations"></div>
+                <button onclick="save_annotation()">Save</button><span id="save_status"></span>
+            </div>
+        </div>
+
+
+
+
+
+
+        <script src="{{ url_for('static', filename='scripts/comms.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/speech.js') }}"></script>
+
+    </body>
+</html>
