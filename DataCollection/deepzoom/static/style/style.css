@@ -42,7 +42,8 @@ html {
 
         #crop {
             position: fixed;
-            left: 1250px;
+            left: 1250px; /* laptop */
+            /*left: 1320px; */
             top: 160px;
             width: 300px;
             height: 300px;

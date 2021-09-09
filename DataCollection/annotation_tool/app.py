@@ -28,7 +28,8 @@ for line in lines:
     try:
         line = line[1].split(": ")[1]
     except Exception as e:
-        print(e, line[0], line[1])
+        pass
+        #print(e, line[0], line[1])
     for s in line[1].split("."):
         if len(s) > 2:
             sentences.append(s.strip())
@@ -36,7 +37,6 @@ for line in lines:
 sentences = set(sentences)
 sentences = list(sentences)
 sentences = sorted(sentences)
-
 
 # --------------------------- #
 

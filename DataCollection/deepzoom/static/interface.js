@@ -65,6 +65,9 @@ let rotate = function(degrees){
     ROT.style.transform = "rotate(" + degrees + "deg)";
 };
 
+let slide_rotate = function(value) {
+    viewer.viewport.setRotation(value);
+}
 
 // Pointers to buttons
 let toggle_button = document.getElementById("toggleDraw");

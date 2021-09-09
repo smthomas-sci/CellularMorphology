@@ -94,6 +94,8 @@ body {
     text-align: center;
     width: 800px;
     margin: auto;
+    height: 150px;
+    overflow-y: scroll;
 }
 
 .success {

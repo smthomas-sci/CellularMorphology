@@ -237,6 +237,10 @@ function submit_annotation() {
     let text = el.value;
     el.value = '';
 
+    // CHECK IF UNDEFINED (no matching image)
+    if (IMAGE_ARRAY[CURRENT_IMAGE] === undefined) {return}
+
+    // otherwise
     let p = document.createElement("p");
     p.innerHTML = "<a onclick=id_click('img" + CURRENT_IMAGE + "')>" + IMAGE_ARRAY[CURRENT_IMAGE] + ":" + text + "</a>"
     p.setAttribute("contenteditable", "true");
@@ -254,6 +258,9 @@ function submit_annotation() {
         }).catch(error => {
           console.error('Async: Could not copy text: ', error);
         });
+
+    // Focus the annotation div
+    el.focus();
 }
 
 function save_annotation() {
@@ -298,6 +305,34 @@ textArea.addEventListener('input', text_submit);
 
 
 
+let annotation = document.getElementById("annotation");
+annotation.addEventListener("keypress", function(event){
+
+//    // EPIDERMIS
+//    if (event.key === "1") { annotation.value = " The epidermis appears normal."}
+//    else if (event.key === "2") { annotation.value = " The epidermis shows mild dysplasia."}
+//    else if (event.key === "3") { annotation.value = " The epidermis shows moderate dysplasia."}
+//    else if (event.key === "4") { annotation.value = " The epidermis shows severe dysplasia."}
+//    else if (event.key === "5") { annotation.value = " The epidermis shows full-thickness dysplasia."}
+//    else {return}
+
+    // DERMIS
+    if (event.key === "1") { annotation.value = " The dermis appears normal."}
+    else if (event.key === "2") { annotation.value = " The dermis appears solar damaged."}
+    else if (event.key === "3") { annotation.value = " The dermis shows inflammation."}
+    else if (event.key === "4") { annotation.value = " The dermis appears abnormal."}
+    else if (event.key === "5") { annotation.value = " The dermis has been displaced."}
+    else {return}
+
+    // hit submit button
+    submit_annotation();
+
+    // clear
+    annotation.value = "";
+
+    let aa = document.getElementById("all_annotations");
+    aa.scrollTop = aa.scrollHeight;
+});
 
 // ------------- MAIN
 window.onload = function() {
